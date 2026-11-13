@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": ["package", "coordinator", "ask_employee"],
+      "description": "How the request is handled next. package: a simple return trip or hotel-only stay in one city, ready for live search. coordinator: multi-city, group, event, visa or change requests that a person must handle. ask_employee: dates or destination are missing, or you cannot tell what is being asked."
+    },
+    "trip_kind": {
+      "type": "string",
+      "enum": ["simple_return", "hotel_only", "multi_city", "group", "change", "other"],
+      "description": "The kind of trip the request describes."
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["late_booking", "business_class_request", "weekend_stay", "history_lookup", "policy_bypass_request", "missing_dates", "personal_data_in_request"]
+      },
+      "description": "Problems found in the request. late_booking: fewer than 14 days ahead (T1). business_class_request: business class asked for (T2). weekend_stay: Saturday night or weekend stay asked for (T5). history_lookup: refers to an earlier trip. policy_bypass_request: asks to ignore or skip the policy. missing_dates: no usable dates. personal_data_in_request: a passport number, date of birth or loyalty number appears in the text. Empty list when none."
+    },
+    "message_to_employee": {
+      "type": "string",
+      "description": "A short, plain reply to the employee, two sentences at most. No prices, fares, schedules or fees. Never repeat personal data. Never promise a booking."
+    },
+    "reason": {
+      "type": "string",
+      "description": "One sentence for the coordinator who reads this: why you chose this decision and these flags."
+    }
+  },
+  "required": ["decision", "trip_kind", "flags", "message_to_employee", "reason"],
+  "additionalProperties": false
+}
