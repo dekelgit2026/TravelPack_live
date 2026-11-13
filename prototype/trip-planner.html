@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Harbor &amp; Pine Trip Planner</title>
+<meta name="description" content="Business trip planner within policy: an AI feature design with a live workflow demo, a private-trip planner and an Eval lab. All company data is fictional.">
+<meta property="og:title" content="Harbor &amp; Pine Trip Planner"><meta property="og:type" content="website"><meta property="og:description" content="AI feature design for business trips within policy: a live workflow, a private trip planner and an Eval lab that scores prompt versions and models.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2313B5A5'/%3E%3Cpath d='M12 34l16-3 10-17h5l-5 16 14-2c4 0 7 2 7 4s-3 4-7 4l-14-2 5 16h-5L28 37 12 34z' fill='white'/%3E%3C/svg%3E">
 <style>
 :root{
   --navy:#0A1D37;--sea:#124A7C;--sky:#2D8FCB;--sun:#FFB454;--coral:#FF6B5B;--teal:#13B5A5;
@@ -440,6 +443,12 @@ V.overview=()=>`<div class="stack">
  </div>
  <div class="card enter" style="--i:4"><div class="eyebrow">Who does what</div>
   <div class="grid4" style="margin-top:12px">${[["Employee","Fills the form. Gets 3 options with a clear policy status.","sys"],["Rules","Decide every policy status and the simple/complex split.","sys"],["LLM","Explains the options and answers Slack. Never decides policy.","ai"],["Coordinator + manager","See the package together. Manager signs off budget. Coordinator books.","human"]].map(x=>`<div><span class="tag ${x[2]}">${x[0]}</span><p class="small muted" style="margin-top:8px">${x[1]}</p></div>`).join("")}</div></div>
+ <div class="card enter" style="--i:5"><div class="eyebrow">Demo route · 5 minutes</div><h2 style="margin:4px 0 10px">Show it in this order</h2><ol style="padding-left:20px;line-height:1.9;margin:0">
+  <li><b>Live demo.</b> Run <b>TS03</b> (Berlin tomorrow, urgent): rules flag the late booking, the manager must sign off, and Book stays locked until both approve. Turn on the architecture view to watch each call light up. <button type="button" class="chip" data-act="tab" data-v="demo">Open</button></li>
+  <li><b>Private trip.</b> Plan my trip, pick Balanced, book (mock): calendar entry, vacation days, manager notice. <button type="button" class="chip" data-act="tab" data-v="vacation">Open</button></li>
+  <li><b>Eval lab.</b> Run the free mock: v1 vs v2 on Haiku, set v2 as the baseline, open the failing case. Real API calls need the local server, so the live site stays free. <button type="button" class="chip" data-act="tab" data-v="eval">Open</button></li>
+  <li><b>Architecture.</b> Business trip vs private trip, side by side, with the MCP and API calls marked. <button type="button" class="chip" data-act="tab" data-v="arch">Open</button></li>
+  <li><b>Design check.</b> The honest verdict: Fix first, and why. <button type="button" class="chip" data-act="tab" data-v="check">Open</button></li></ol></div>
  </div>`;
 AFTER.overview=countUp;
 
@@ -782,7 +791,7 @@ V.eval=()=>{if(!window.EVALDATA)return`<div class="card"><h2>Eval data not found
   <div class="ev-steps"><div class="ev-step"><b>1 · Floor, free</b>The do-nothing answer. It must score 0%, or the checks are too weak.</div><div class="ev-step"><b>2 · Mock replay, free</b>Re-grade real outputs already recorded, with today's checks.</div><div class="ev-step"><b>3 · Actual API, pennies</b>Cheapest model, caching on, only what changed. Your runs are remembered.</div><div class="ev-step"><b>4 · Baseline and guard</b>Approve a run. Regressions are flagged, and a budget limit stops overspending.</div></div></div>
  <div class="card enter" style="--i:1"><div class="ev-ctl" id="evctl"></div></div><div id="evout"></div></div>`};
 AFTER.eval=()=>{EV.res=null;EV.open=null;EV.msg="";EV.note="";evPaint();evPaintOut();evDetect()};
-async function evDetect(){try{const r=await fetch("/api/health",{cache:"no-store"});if(r.ok){const j=await r.json();if(j&&j.ok)EV.backend=j}}catch(e){}evPaint()}
+async function evDetect(){if(!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){evPaint();return}try{const r=await fetch("/api/health",{cache:"no-store"});if(r.ok){const j=await r.json();if(j&&j.ok)EV.backend=j}}catch(e){}evPaint()}
 function evPaint(){const el=$("#evctl");if(!el)return;const live=EV.engine==="live",cs=evCases(),pc=evPlanCost(),eqv=(()=>{let u=0;EV.models.forEach(m=>EV.versions.forEach(v=>u+=evEst({version:v,model:m,cache:true,cases:cs}).usd));return u})();
  const keyBox=EV.key?`<div class="row"><span class="small">🔑 Key held in this tab's memory (not stored, not shown).</span><button type="button" class="chip" data-ev="forget">Forget key</button></div>`:`<div class="row"><input class="ev-key" id="evkey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste a dev key, then press Enter (memory only)"></div>`;
  let be="";if(live){if(EV.backend&&EV.backend.has_key)be=`<div class="ev-banner ev-secret">🔒 <span><b>Secret mode.</b> The key stays on your local server, read from .env. It is never sent to this page. Server budget guard: $${EV.backend.max_usd.toFixed(2)}, spent so far $${EV.backend.spent_usd.toFixed(5)}.</span></div>`;
