@@ -1,0 +1,22 @@
+# Secrets never go into Git
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Unanonymized source material stays local
+raw/*
+!raw/README.txt
+
+# Local Claude Code settings (personal permissions)
+.claude/settings.local.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
