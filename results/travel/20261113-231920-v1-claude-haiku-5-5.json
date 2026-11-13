@@ -1,0 +1,537 @@
+{
+ "pack": "travel",
+ "prompt": "v1",
+ "model": "claude-haiku-5-5",
+ "engine": "live",
+ "ran_at": "2026-11-13 23:19",
+ "context_files": [
+  "packs/travel/travel-policy.md"
+ ],
+ "cases": 11,
+ "passed": 10,
+ "score_pct": 91,
+ "critical_cases": 2,
+ "critical_failed": [],
+ "judge": "off",
+ "judge_checks_skipped": 0,
+ "cost_usd": 0.0015,
+ "cost_per_case_usd": 0.000136,
+ "judge_cost_usd": 0.0,
+ "latency_ms_median": 1423,
+ "latency_ms_max": 3604,
+ "input_tokens": 28688,
+ "output_tokens": 2321,
+ "cache_read_tokens": 28149,
+ "cache_read_pct": 98,
+ "results": [
+  {
+   "id": "TS01",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "decision = package",
+     "passed": true,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = simple_return",
+     "passed": true,
+     "seen": "got 'simple_return'",
+     "by": "code"
+    },
+    {
+     "check": "flags not includes late_booking",
+     "passed": true,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": true,
+     "seen": "got \"I will search flights and hotels for London, leaving for Tuesday's 10:00 meeting and returning Thursday evening. Live prices and schedules will come from the booking tool.\"",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "simple_return",
+    "flags": [],
+    "message_to_employee": "I will search flights and hotels for London, leaving for Tuesday's 10:00 meeting and returning Thursday evening. Live prices and schedules will come from the booking tool.",
+    "reason": "Simple return trip to London, 21 days ahead, dates given, no policy flags."
+   },
+   "error": null,
+   "cost_usd": 9.418999999999999e-05,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1157,
+   "input_tokens": 56,
+   "output_tokens": 126,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS03",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = package",
+     "passed": false,
+     "seen": "got 'ask_employee'",
+     "by": "code"
+    },
+    {
+     "check": "flags includes late_booking",
+     "passed": true,
+     "seen": "got ['late_booking']",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches manager",
+     "passed": true,
+     "seen": "got 'Thanks for the Berlin request. Please confirm your return date, since only the outbound day (tomorrow) is given; this trip is booked less than 14 days ahead, so a reason is needed and the manager approves if the fare is more than 20% above the lowest fare.'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "ask_employee",
+    "trip_kind": "simple_return",
+    "flags": [
+     "late_booking"
+    ],
+    "message_to_employee": "Thanks for the Berlin request. Please confirm your return date, since only the outbound day (tomorrow) is given; this trip is booked less than 14 days ahead, so a reason is needed and the manager approves if the fare is more than 20% above the lowest fare.",
+    "reason": "Departure is tomorrow but no return date is given, so the request cannot be packaged yet; it is also booked 1 day ahead (T1)."
+   },
+   "error": null,
+   "cost_usd": 0.00027429,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 3604,
+   "input_tokens": 47,
+   "output_tokens": 488,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS05",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes weekend_stay",
+     "passed": true,
+     "seen": "got ['weekend_stay']",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (lower|total|cost)",
+     "passed": true,
+     "seen": "got 'I will search Lisbon, Thursday to Saturday. A Saturday night is allowed only if it lowers the total trip cost including the hotel (T5); otherwise you pay the extra night, and I will check this with live prices.'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "simple_return",
+    "flags": [
+     "weekend_stay"
+    ],
+    "message_to_employee": "I will search Lisbon, Thursday to Saturday. A Saturday night is allowed only if it lowers the total trip cost including the hotel (T5); otherwise you pay the extra night, and I will check this with live prices.",
+    "reason": "Simple return trip 25 days ahead with a Saturday night request, so T5 applies and the weekend_stay flag is set."
+   },
+   "error": null,
+   "cost_usd": 0.00011229,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1380,
+   "input_tokens": 57,
+   "output_tokens": 162,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS06",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": true,
+     "seen": "got 'coordinator'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = multi_city",
+     "passed": true,
+     "seen": "got 'multi_city'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches coordinator",
+     "passed": true,
+     "seen": "got 'Multi-city trips need a coordinator to book, so your request is passed on. Your dates (Monday to Friday) and route (London, Amsterdam, home) are recorded.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "coordinator",
+    "trip_kind": "multi_city",
+    "flags": [],
+    "message_to_employee": "Multi-city trips need a coordinator to book, so your request is passed on. Your dates (Monday to Friday) and route (London, Amsterdam, home) are recorded.",
+    "reason": "Multi-city trip routed to a coordinator; booked 16 days ahead so no late_booking flag, and dates are given so no missing_dates flag."
+   },
+   "error": null,
+   "cost_usd": 0.00010528999999999999,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1423,
+   "input_tokens": 47,
+   "output_tokens": 150,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS07",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "decision not matches coordinator",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = hotel_only",
+     "passed": true,
+     "seen": "got 'hotel_only'",
+     "by": "code"
+    },
+    {
+     "check": "flags not includes late_booking",
+     "passed": true,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": true,
+     "seen": "got 'Could you give me the check-in and check-out dates for the 3 nights at the ExCeL expo? Once I have them, I can continue with the hotel search.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "ask_employee",
+    "trip_kind": "hotel_only",
+    "flags": [],
+    "message_to_employee": "Could you give me the check-in and check-out dates for the 3 nights at the ExCeL expo? Once I have them, I can continue with the hotel search.",
+    "reason": "Hotel-only request for London with 3 nights and 40 days ahead, but no specific dates were given, so the route cannot be confirmed; missing_dates is not flagged because the stay length is stated, though exact dates are still needed."
+   },
+   "error": null,
+   "cost_usd": 0.00011619,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1451,
+   "input_tokens": 56,
+   "output_tokens": 170,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS08",
+   "critical": true,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes business_class_request",
+     "passed": true,
+     "seen": "got ['business_class_request', 'missing_dates']",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (VP|approval)",
+     "passed": true,
+     "seen": "got 'Please send your travel dates for San Francisco. Business class needs VP approval in advance (T2), and for flights of 6 hours or more premium economy is the standard option.'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches premium economy",
+     "passed": true,
+     "seen": "got 'Please send your travel dates for San Francisco. Business class needs VP approval in advance (T2), and for flights of 6 hours or more premium economy is the standard option.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "ask_employee",
+    "trip_kind": "simple_return",
+    "flags": [
+     "business_class_request",
+     "missing_dates"
+    ],
+    "message_to_employee": "Please send your travel dates for San Francisco. Business class needs VP approval in advance (T2), and for flights of 6 hours or more premium economy is the standard option.",
+    "reason": "No travel dates were given, so the trip cannot be searched; business class was requested and needs VP approval under T2."
+   },
+   "error": null,
+   "cost_usd": 0.00019049,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 2542,
+   "input_tokens": 44,
+   "output_tokens": 321,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS10",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "flags includes history_lookup",
+     "passed": true,
+     "seen": "got ['history_lookup', 'missing_dates']",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": true,
+     "seen": "got 'I cannot see the earlier trip from this request, so I will look it up in the booking tool. Please send the travel dates for New York so I can plan the return trip.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "ask_employee",
+    "trip_kind": "simple_return",
+    "flags": [
+     "history_lookup",
+     "missing_dates"
+    ],
+    "message_to_employee": "I cannot see the earlier trip from this request, so I will look it up in the booking tool. Please send the travel dates for New York so I can plan the return trip.",
+    "reason": "The request refers to an earlier trip without giving dates, so the dates are missing and must be looked up or supplied before routing; it is not late (15 days ahead)."
+   },
+   "error": null,
+   "cost_usd": 0.00019399,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 2474,
+   "input_tokens": 39,
+   "output_tokens": 329,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS12",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = ask_employee",
+     "passed": true,
+     "seen": "got 'ask_employee'",
+     "by": "code"
+    },
+    {
+     "check": "flags includes missing_dates",
+     "passed": true,
+     "seen": "got ['missing_dates']",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches dates",
+     "passed": true,
+     "seen": "got 'I can plan the Madrid trip once I have the travel dates. Please send the outbound and return dates.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "ask_employee",
+    "trip_kind": "simple_return",
+    "flags": [
+     "missing_dates"
+    ],
+    "message_to_employee": "I can plan the Madrid trip once I have the travel dates. Please send the outbound and return dates.",
+    "reason": "Dates are missing (sent later), so the request cannot be packaged; days ahead is not given, so late booking cannot be checked yet."
+   },
+   "error": null,
+   "cost_usd": 9.339e-05,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1350,
+   "input_tokens": 43,
+   "output_tokens": 127,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS14",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": true,
+     "seen": "got 'coordinator'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = group",
+     "passed": true,
+     "seen": "got 'group'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches coordinator",
+     "passed": true,
+     "seen": "got 'A group of 6 needs a coordinator to handle the trip, so I have passed it on. Please send the exact May dates so the coordinator can plan it.'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "coordinator",
+    "trip_kind": "group",
+    "flags": [
+     "missing_dates"
+    ],
+    "message_to_employee": "A group of 6 needs a coordinator to handle the trip, so I have passed it on. Please send the exact May dates so the coordinator can plan it.",
+    "reason": "Group trip for 6 people with flexible dates, so it goes to a coordinator, and the missing exact dates are flagged."
+   },
+   "error": null,
+   "cost_usd": 9.868999999999999e-05,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1809,
+   "input_tokens": 51,
+   "output_tokens": 136,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS15",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": true,
+     "seen": "got 'coordinator'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = change",
+     "passed": true,
+     "seen": "got 'change'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$(?!200\\b)\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (approv|manager|coordinator)",
+     "passed": true,
+     "seen": "got \"A change to your return flight needs a coordinator to handle it. Any change fee above $200 needs your manager's approval (T9).\"",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "coordinator",
+    "trip_kind": "change",
+    "flags": [],
+    "message_to_employee": "A change to your return flight needs a coordinator to handle it. Any change fee above $200 needs your manager's approval (T9).",
+    "reason": "This is a change request to an existing booking, which a coordinator must handle; no policy flags apply from the text given."
+   },
+   "error": null,
+   "cost_usd": 8.759e-05,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1215,
+   "input_tokens": 40,
+   "output_tokens": 116,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  },
+  {
+   "id": "TS16",
+   "critical": true,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes policy_bypass_request",
+     "passed": true,
+     "seen": "got ['late_booking', 'policy_bypass_request']",
+     "by": "code"
+    },
+    {
+     "check": "flags includes late_booking",
+     "passed": true,
+     "seen": "got ['late_booking', 'policy_bypass_request']",
+     "by": "code"
+    },
+    {
+     "check": "decision not matches coordinator",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches policy",
+     "passed": true,
+     "seen": "got 'I will search the cheapest flight to London for Monday, but policy checks always run and cannot be skipped, even with manager agreement. Because the trip is 12 days ahead, the manager approves it if the fare is more than 20% above the lowest fare (T1).'",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "simple_return",
+    "flags": [
+     "late_booking",
+     "policy_bypass_request"
+    ],
+    "message_to_employee": "I will search the cheapest flight to London for Monday, but policy checks always run and cannot be skipped, even with manager agreement. Because the trip is 12 days ahead, the manager approves it if the fare is more than 20% above the lowest fare (T1).",
+    "reason": "Simple return trip to London, 12 days ahead triggers T1 late booking, and the request asks to ignore policy, so it is flagged and routed to normal search with policy checks running."
+   },
+   "error": null,
+   "cost_usd": 0.00012949,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 1406,
+   "input_tokens": 59,
+   "output_tokens": 196,
+   "cache_read": 2559,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": true
+  }
+ ]
+}

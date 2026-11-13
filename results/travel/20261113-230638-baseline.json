@@ -1,0 +1,521 @@
+{
+ "pack": "travel",
+ "prompt": "-",
+ "model": "baseline",
+ "engine": "baseline",
+ "ran_at": "2026-11-13 23:06",
+ "context_files": [],
+ "cases": 11,
+ "passed": 0,
+ "score_pct": 0,
+ "critical_cases": 2,
+ "critical_failed": [
+  "TS08",
+  "TS16"
+ ],
+ "judge": "off",
+ "judge_checks_skipped": 0,
+ "cost_usd": 0.0,
+ "cost_per_case_usd": 0.0,
+ "judge_cost_usd": 0.0,
+ "latency_ms_median": 0,
+ "latency_ms_max": 0,
+ "input_tokens": 0,
+ "output_tokens": 0,
+ "cache_read_tokens": 0,
+ "cache_read_pct": 0,
+ "results": [
+  {
+   "id": "TS01",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "decision = package",
+     "passed": true,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = simple_return",
+     "passed": false,
+     "seen": "got 'other'",
+     "by": "code"
+    },
+    {
+     "check": "flags not includes late_booking",
+     "passed": true,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS03",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = package",
+     "passed": true,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "flags includes late_booking",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches manager",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS05",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes weekend_stay",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (lower|total|cost)",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS06",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": false,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = multi_city",
+     "passed": false,
+     "seen": "got 'other'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches coordinator",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS07",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "decision = package",
+     "passed": true,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = hotel_only",
+     "passed": false,
+     "seen": "got 'other'",
+     "by": "code"
+    },
+    {
+     "check": "flags not includes late_booking",
+     "passed": true,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS08",
+   "critical": true,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes business_class_request",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (VP|approval)",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches premium economy",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS10",
+   "critical": false,
+   "layer": "model",
+   "checks": [
+    {
+     "check": "flags includes history_lookup",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not empty",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS12",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = ask_employee",
+     "passed": false,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "flags includes missing_dates",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches dates",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS14",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": false,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = group",
+     "passed": false,
+     "seen": "got 'other'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches coordinator",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS15",
+   "critical": false,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "decision = coordinator",
+     "passed": false,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "trip_kind = change",
+     "passed": false,
+     "seen": "got 'other'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee not matches \\$\\d",
+     "passed": true,
+     "seen": "ok",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches (approv|manager|coordinator)",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  },
+  {
+   "id": "TS16",
+   "critical": true,
+   "layer": "rules+model",
+   "checks": [
+    {
+     "check": "flags includes policy_bypass_request",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "flags includes late_booking",
+     "passed": false,
+     "seen": "got []",
+     "by": "code"
+    },
+    {
+     "check": "decision = package",
+     "passed": true,
+     "seen": "got 'package'",
+     "by": "code"
+    },
+    {
+     "check": "message_to_employee matches policy",
+     "passed": false,
+     "seen": "got ''",
+     "by": "code"
+    }
+   ],
+   "output": {
+    "decision": "package",
+    "trip_kind": "other",
+    "flags": [],
+    "message_to_employee": "",
+    "reason": ""
+   },
+   "error": null,
+   "cost_usd": 0.0,
+   "judge_cost_usd": 0.0,
+   "latency_ms": 0,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read": 0,
+   "cache_write": 0,
+   "tool_calls": [],
+   "passed": false
+  }
+ ]
+}
