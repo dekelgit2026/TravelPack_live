@@ -303,6 +303,12 @@ details.acc .bd{padding:0 16px 16px;font-size:14.5px;color:var(--ink2)}
 .vp-day.vp-away{background:linear-gradient(160deg,#13B5A5,#2D8FCB);color:#fff}.vp-day.vp-away b{color:#fff}
 .vp-day.vp-leave{box-shadow:inset 0 -4px 0 var(--sun)}
 .vp-msg{display:flex;gap:10px;align-items:flex-start;background:#EEF3F8;border-radius:14px;padding:10px 12px;font-size:14px;animation:rise .5s both}
+.vp-in{width:100%;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font:inherit;font-weight:700;font-size:15px;background:#fff;color:var(--ink)}
+.vp-in:focus{outline:2px solid var(--sky);outline-offset:1px}
+.vp-banner{border-radius:12px;padding:10px 14px;font-size:13.5px;border-left:5px solid}
+.vp-b-live{background:var(--passbg);border-color:var(--pass)}.vp-b-mock{background:var(--holdbg);border-color:var(--hold)}.vp-b-est{background:var(--humanbg);border-color:var(--human)}
+.vp-status{display:flex;gap:10px;align-items:flex-start;background:#FDECEA;border-radius:12px;padding:10px 14px;font-size:13.5px}
+.vp-dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--block);margin-top:5px}
 .vp-note{border-left:4px solid var(--sun);background:var(--humanbg);border-radius:0 12px 12px 0;padding:10px 14px;font-size:13.5px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
@@ -622,41 +628,73 @@ const VPD={
     stay:{name:"Harbor Plaza",kind:"Hotel",score:"4.5 bubbles",reviews:2210,price:540,src:"Mock",hue:200},acts:[{name:"Tower tickets",price:34,src:"Mock"},{name:"Gothic quarter tour",price:22,src:"Mock"},{name:"Cooking class",price:69,src:"Mock"}],food:225},
    {name:"Comfort",tag:"Top rated stay",flight:{air:"Pine Air",out:{dep:"09:10",arr:"12:50",stops:0,via:"",},ret:{dep:"17:30",arr:"22:05",stops:0,via:"",dur:17700},price:489,bag:"2 bags",src:"Mock"},
     stay:{name:"Gran Sky Hotel",kind:"5-star hotel",score:"9.3/10",reviews:980,price:790,src:"Mock",hue:270},acts:[{name:"Tower tickets",price:34,src:"Mock"},{name:"Sunset sail",price:55,src:"Mock"},{name:"Wine tasting",price:48,src:"Mock"},{name:"Private city tour",price:61,src:"Mock"}],food:325}]}};
-const VP={src:"live",budget:1800,week:"mf",pick:-1,booked:false,running:false};
+const VPREG={europe:{label:"Europe",flight:450,hotel:120,act:35,food:45},namerica:{label:"North America",flight:1100,hotel:190,act:45,food:60},asia:{label:"Asia",flight:900,hotel:90,act:30,food:30},mea:{label:"Middle East and Africa",flight:600,hotel:100,act:30,food:35},oceania:{label:"Oceania",flight:1700,hotel:160,act:45,food:55},latam:{label:"Latin America",flight:1300,hotel:100,act:30,food:35}};
+const VPCODE={"tel aviv":"TLV","lisbon":"LIS","barcelona":"BCN","london":"LON","new york":"NYC","paris":"PAR","madrid":"MAD","rome":"ROM","berlin":"BER","amsterdam":"AMS","athens":"ATH","istanbul":"IST","dubai":"DXB","tokyo":"TYO","bangkok":"BKK","sydney":"SYD"};
+const VPCITIES=["Lisbon","Barcelona","Madrid","Rome","Paris","London","Berlin","Amsterdam","Athens","Istanbul","Dubai","New York","Tokyo","Bangkok","Sydney"];
+const vpNorm=s=>String(s||"").trim().toLowerCase();
+const vpEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const vpCode=n=>VPCODE[vpNorm(n)]||vpNorm(n).replace(/[^a-z]/g,"").slice(0,3).toUpperCase()||"???";
+const vpISO=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const vpPlus=n=>{const d=new Date();d.setDate(d.getDate()+n);return vpISO(d)};
+const vpDays=(s,e)=>Math.round((new Date(e+"T00:00:00")-new Date(s+"T00:00:00"))/864e5);
+const VP={from:"Tel Aviv",to:"Lisbon",start:"2026-12-07",end:"2026-12-12",budget:1800,week:"mf",region:"europe",est:Object.assign({},VPREG.europe),pick:-1,booked:false,running:false};
 const VPC={flight:"#2D8FCB",stay:"#13B5A5",acts:"#FFB454",food:"#8593A8"};
-const vpData=()=>VPD[VP.src];
+/* which data can honestly answer this request? a snapshot only answers the exact trip it was captured for */
+function vpMatch(){const to=vpNorm(VP.to),from=vpNorm(VP.from),fromOk=!from||/tel aviv|tlv/.test(from);
+ for(const k of ["live","mock"]){const d=VPD[k];if(to===vpNorm(d.to)&&VP.start===d.start&&VP.end===d.end&&fromOk)return k}return"estimate"}
+function vpEstimate(){const r=VP.est,nights=Math.max(1,vpDays(VP.start,VP.end)),days=nights+1,rd=Math.round;
+ const T=[["Budget","Lowest cost",.9,.6,.5,.7,30,"Budget stay"],["Balanced","Best value",1,1,1,1,200,"3-star hotel"],["Comfort","Top rated stay",1.15,1.8,1.6,1.4,260,"4-star hotel"]];
+ return{label:"Estimate",est:1,from:VP.from.trim()||"Tel Aviv",to:VP.to.trim(),code:vpCode(VP.to),start:VP.start,end:VP.end,awayTo:VP.end,nights,budget:VP.budget,
+  packs:T.map(([name,tag,fF,fH,fA,fO,hue,stay])=>({name,tag,flight:{air:"Round trip (estimate)",out:{},ret:{dur:0},price:rd(r.flight*fF),bag:"",src:"Estimate",est:1},
+   stay:{name:stay+" (estimate)",kind:"",score:"no rating",reviews:0,price:rd(r.hotel*fH*nights),src:"Estimate",hue,est:1},
+   acts:[{name:"Sightseeing, tours and tickets (estimate)",price:rd(r.act*fA*days),src:"Estimate"}],food:rd(r.food*fO*days)}))}}
+const vpData=()=>{const m=vpMatch();return m==="estimate"?vpEstimate():VPD[m]};
+function vpValid(){if(!VP.to.trim())return"Enter a destination.";if(!VP.start||!VP.end)return"Pick a departure and a return date.";const n=vpDays(VP.start,VP.end);if(!(n>=1))return"The return date must be after the departure date.";if(n>30)return"Up to 30 nights for now.";
+ if(vpMatch()==="estimate"&&VP.start<vpPlus(0))return"The departure date is in the past.";return""}
 const vpTot=p=>{const a=p.acts.reduce((s,x)=>s+x.price,0);return{flight:p.flight.price,stay:p.stay.price,acts:a,food:p.food,total:p.flight.price+p.stay.price+a+p.food}};
 function vpWork(s,e,w){const d=new Date(s+"T00:00:00"),end=new Date(e+"T00:00:00");let n=0;while(d<=end){const k=d.getDay();if(w==="mf"?(k>=1&&k<=5):(k>=0&&k<=4))n++;d.setDate(d.getDate()+1)}return n}
 const vpA=(u,t)=>u?`<a href="${u.replace(/&/g,"&amp;")}" target="_blank" rel="noopener">${t}</a>`:t;
-V.vacation=()=>`<div class="stack"><div class="vp-hero enter"><div class="eyebrow" style="color:#FFB454">Private trip · the employee's own money</div><h2>Say where, when and how much. Get a full vacation.</h2><p>Flights from Kiwi, stays from Booking.com and Tripadvisor, things to do from Booking.com. The booked trip goes to your calendar, and the days go to the vacation ledger.</p></div>
- <div class="card enter" style="--i:1"><div class="row" id="vpsrc"></div><div class="vp-form" id="vpform"></div>
-  <div class="row" style="margin-top:14px"><button class="btn sun" id="vprun" data-vp="run">Plan my trip ✈</button><span class="small muted" id="vpnote"></span><span class="spacer"></span><button class="chip" data-ax="toggle" aria-pressed="${AX.on}">Architecture view</button></div></div>
+V.vacation=()=>`<div class="stack"><div class="vp-hero enter"><div class="eyebrow" style="color:#FFB454">Private trip · the employee's own money</div><h2>Say where, when and how much. Get a full vacation.</h2><p>Type any destination and your real dates. Kiwi (flights), Booking.com and Tripadvisor (stays, things to do) are the intended search tools. On this page they are replayed from a dated snapshot or replaced by labeled estimates. The booked trip goes to your calendar, and the days go to the vacation ledger.</p></div>
+ <div class="card enter" style="--i:1"><div class="row" id="vpsrc"></div><div class="vp-form" id="vpform"></div><div id="vpstatus" style="display:grid;gap:10px;margin-top:14px"></div>
+  <div class="row" style="margin-top:14px"><button class="btn sun" id="vprun" data-vp="run">Plan my trip ✈</button><span class="small" id="vpnote" style="color:var(--block);font-weight:600"></span><span class="spacer"></span><button class="chip" data-ax="toggle" aria-pressed="${AX.on}">Architecture view</button></div></div>
  <div class="ax-split ${AX.on?"ax-on":""}" id="axvp"><div id="vpout" style="min-width:0"></div><aside class="ax-panel" id="axpanel"></aside></div></div>`;
-function vpPaintForm(){const d=vpData();
- $("#vpsrc").innerHTML=Object.entries(VPD).map(([k,x])=>`<button class="chip" data-vp="src" data-v="${k}" aria-pressed="${k===VP.src}">${x.label}</button>`).join("")+`<span class="tag ${d.live?"pass":"hold"}">${d.live?"Real data":"Fictional"}</span>`;
- $("#vpform").innerHTML=`<div class="vp-field"><small>From</small><b>${d.from}</b></div><div class="vp-field"><small>Destination</small><b>${d.to}</b></div><div class="vp-field"><small>Dates</small><b>${d.start.slice(5)} to ${d.end.slice(5)} · ${d.nights} nights</b></div>
+function vpStatus(){const m=vpMatch(),L=VPD.live;
+ const b=m==="live"?`<div class="vp-banner vp-b-live"><b>Replaying captured results.</b> ${L.to}, ${L.start} to ${L.end}, searched on 5 Nov 2026 with Kiwi, Booking.com and Tripadvisor. This is not a live search today: prices change.</div>`
+ :m==="mock"?`<div class="vp-banner vp-b-mock"><b>Mock data.</b> Fictional airlines, hotels and prices, for the demo only.</div>`
+ :`<div class="vp-banner vp-b-est"><b>Estimate mode.</b> There are no captured results for ${vpEsc(VP.to.trim()||"this destination")} on these dates, so every price is a labeled estimate from the assumptions above. It is not a quote.${VP.to.trim().toLowerCase()===vpNorm(L.to)?" (Captured results exist for "+L.to+" only on "+L.start+" to "+L.end+".)":""}</div>`;
+ return b+`<div class="vp-status"><span class="vp-dot"></span><span><b>Kiwi, Booking.com and Tripadvisor are not connected on this page.</b> They were used once, on 5 Nov 2026, to capture the Lisbon results. A web page cannot call them, so a live search needs a small service behind the page (see the Architecture tab).</span></div>`}
+function vpPaintForm(){const m=vpMatch(),err=vpValid(),n=vpDays(VP.start,VP.end);
+ $("#vpsrc").innerHTML=`<span class="small muted" style="margin-right:4px">Try:</span><button type="button" class="chip" data-vp="preset" data-v="live" aria-pressed="${m==="live"}">Lisbon · captured 5 Nov</button><button type="button" class="chip" data-vp="preset" data-v="mock" aria-pressed="${m==="mock"}">Barcelona · mock</button><button type="button" class="chip" data-vp="preset" data-v="custom" aria-pressed="${m==="estimate"}">Your own trip</button>`;
+ const est=m==="estimate"?`<div class="vp-field" style="grid-column:1/-1"><small>Estimate assumptions (rough regional defaults, not quotes: replace them with numbers you have seen)</small><div class="row" style="margin-top:6px;gap:10px"><select class="vp-in" style="width:auto" data-vp="region" aria-label="Region">${Object.entries(VPREG).map(([k,x])=>`<option value="${k}" ${VP.region===k?"selected":""}>${x.label}</option>`).join("")}</select>${[["flight","Flight, round trip"],["hotel","Hotel per night"],["act","Activities per day"],["food","Food per day"]].map(f=>`<label class="small muted" style="display:flex;align-items:center;gap:6px">${f[1]} $<input class="vp-in" style="width:84px" type="number" min="0" step="5" data-vp="est" data-k="${f[0]}" value="${VP.est[f[0]]}"></label>`).join("")}</div></div>`:"";
+ $("#vpform").innerHTML=`<div class="vp-field"><small>From</small><input class="vp-in" type="text" data-vp="from" value="${vpEsc(VP.from)}" maxlength="40" aria-label="From"></div>
+ <div class="vp-field"><small>Destination</small><input class="vp-in" type="text" list="vpdest" data-vp="to" value="${vpEsc(VP.to)}" maxlength="40" placeholder="Any city" aria-label="Destination"><datalist id="vpdest">${VPCITIES.map(c=>`<option value="${c}">`).join("")}</datalist></div>
+ <div class="vp-field"><small>Depart</small><input class="vp-in" type="date" data-vp="start" value="${VP.start}" aria-label="Departure date"></div>
+ <div class="vp-field"><small>Return · ${n>=1?n+" night"+(n>1?"s":""):"check dates"}</small><input class="vp-in" type="date" data-vp="end" value="${VP.end}" min="${VP.start}" aria-label="Return date"></div>
  <div class="vp-field"><small>Budget · <span id="vpbv">${fmt(VP.budget)}</span></small><input type="range" min="600" max="3000" step="50" value="${VP.budget}" data-vp="budget" aria-label="Budget"></div>
- <div class="vp-field"><small>Workweek (for vacation days)</small><div class="row" style="margin-top:4px">${[["mf","Mon-Fri"],["st","Sun-Thu"]].map(w=>`<button class="chip" data-vp="week" data-v="${w[0]}" aria-pressed="${VP.week===w[0]}">${w[1]}</button>`).join("")}</div></div>
- <div class="vp-field"><small>Tools</small><b style="font-size:14px">Kiwi · Booking.com · Tripadvisor</b></div>`;
- $("#vpnote").textContent=d.note}
-function vpReset(){VP.pick=-1;VP.booked=false;VP.running=false;if(!$("#vpsrc"))return;vpPaintForm();axPaint("vac");$("#vpout").innerHTML="";$("#vprun").disabled=false;$("#vprun").textContent="Plan my trip ✈"}
+ <div class="vp-field"><small>Your workweek (counts leave days)</small><div class="row" style="margin-top:4px">${[["mf","Mon-Fri"],["st","Sun-Thu"]].map(w=>`<button type="button" class="chip" data-vp="week" data-v="${w[0]}" aria-pressed="${VP.week===w[0]}">${w[1]}</button>`).join("")}</div></div>${est}`;
+ $("#vpstatus").innerHTML=vpStatus();$("#vpnote").textContent=err;const b=$("#vprun");if(b)b.disabled=!!err||VP.running}
+function vpFormChanged(){VP.pick=-1;VP.booked=false;VP.running=false;if(!$("#vpsrc"))return;$("#vpout").innerHTML="";axPaint("vac");vpPaintForm();const b=$("#vprun");if(b)b.textContent="Plan my trip ✈"}
+function vpReset(){vpFormChanged()}
 AFTER.vacation=vpReset;
 function vpPack(p,i,anim){const d=vpData(),t=vpTot(p),over=t.total>VP.budget,sel=VP.pick===i,f=p.flight,mx=Math.max(VP.budget,t.total);
  const seg=k=>`<i style="width:${t[k]/mx*100}%;background:${VPC[k]}"></i>`;
+ const flight=f.est?`<div class="vp-line"><span>Round-trip flight<span class="vp-src vp-est">estimate</span></span><b>${fmt2(f.price)}</b></div><div class="small muted">No airline or schedule: a regional estimate, not a search result.</div>`
+ :`<div class="al">${tail(f.air.split(" ")[0])}${vpA(f.url,f.air)}<span class="vp-src">${f.src}</span></div>
+ <div class="route"><div><b>${vpCode(d.from)}</b><div class="small muted">${f.out.dep}</div></div><div class="line">${PLANE()}</div><div style="text-align:right"><b>${d.code}</b><div class="small muted">${f.out.arr}</div></div></div>
+ <div class="small muted">Return ${f.ret.dep} to ${f.ret.arr}, ${f.ret.stops?"1 stop via "+f.ret.via:"non-stop"}, ${fmtDur(Math.round(f.ret.dur/60))}. ${f.bag}.</div>`;
  return`<div class="vp-pkg ${sel?"vp-sel":""} ${over?"vp-over":""}" data-vp="pick" data-i="${i}" style="--i:${i};${anim?"":"animation:none"}">
  <div class="vp-head"><div><div class="vp-name">${p.name}</div><span class="tag sys">${p.tag}</span></div><div class="vp-total">${fmt2(t.total)}<small>${over?fmt2(t.total-VP.budget)+" over budget":fmt2(VP.budget-t.total)+" left"}</small></div></div>
  ${over?`<span class="stamp block" style="justify-self:start">Removed: over budget</span>`:""}
  <div><div class="vp-seg">${seg("flight")}${seg("stay")}${seg("acts")}${seg("food")}</div><div class="vp-legend"><span><b style="background:${VPC.flight}"></b>Flight ${fmt2(t.flight)}</span><span><b style="background:${VPC.stay}"></b>Stay ${fmt2(t.stay)}</span><span><b style="background:${VPC.acts}"></b>Activities ${fmt2(t.acts)}</span><span><b style="background:${VPC.food}"></b>Food ${fmt2(t.food)}</span></div></div>
- <div class="al">${tail(f.air.split(" ")[0])}${vpA(f.url,f.air)}<span class="vp-src">${f.src}</span></div>
- <div class="route"><div><b>TLV</b><div class="small muted">${f.out.dep}</div></div><div class="line">${PLANE()}</div><div style="text-align:right"><b>${d.code}</b><div class="small muted">${f.out.arr}</div></div></div>
- <div class="small muted">Return ${f.ret.dep} to ${f.ret.arr}, ${f.ret.stops?"1 stop via "+f.ret.via:"non-stop"}, ${fmtDur(Math.round(f.ret.dur/60))}. ${f.bag}.</div>
- <div class="hotel">${hotelArt(100+i*13+(d.live?0:50),p.stay.hue)}<div><b>${vpA(p.stay.url,p.stay.name)}</b><div class="small muted">${p.stay.kind} · ${p.stay.score} · ${p.stay.reviews.toLocaleString("en-US")} reviews</div><div class="small">${fmt2(p.stay.price)} for ${d.nights} nights<span class="vp-src">${p.stay.src}</span></div></div></div>
- <div>${p.acts.map(a=>`<div class="vp-line"><span>${vpA(a.url,a.name)}<span class="vp-src">${a.src||"Booking.com"}</span></span><b>${fmt2(a.price)}</b></div>`).join("")}<div class="vp-line"><span>Food and local transport<span class="vp-src vp-est">estimate</span></span><b>${fmt2(p.food)}</b></div></div></div>`}
+ ${flight}
+ <div class="hotel">${hotelArt(100+i*13+(d.est?20:d.live?0:50),p.stay.hue)}<div><b>${vpA(p.stay.url,vpEsc(p.stay.name))}</b><div class="small muted">${p.stay.est?"No rating: a regional estimate":p.stay.kind+" · "+p.stay.score+" · "+p.stay.reviews.toLocaleString("en-US")+" reviews"}</div><div class="small">${fmt2(p.stay.price)} for ${d.nights} night${d.nights>1?"s":""}<span class="vp-src ${p.stay.est?"vp-est":""}">${p.stay.est?"estimate":p.stay.src}</span></div></div></div>
+ <div>${p.acts.map(a=>`<div class="vp-line"><span>${vpA(a.url,a.name)}<span class="vp-src ${a.src==="Estimate"?"vp-est":""}">${a.src==="Estimate"?"estimate":a.src||"Booking.com"}</span></span><b>${fmt2(a.price)}</b></div>`).join("")}<div class="vp-line"><span>Food and local transport<span class="vp-src vp-est">estimate</span></span><b>${fmt2(p.food)}</b></div></div></div>`}
 function vpPaintPacks(anim){const el=$("#vppacks");if(!el)return;el.innerHTML=`<div class="vp-packs">${vpData().packs.map((p,i)=>vpPack(p,i,anim)).join("")}</div>`}
 function vpExplain(){const d=vpData(),ok=d.packs.map(p=>({p,t:vpTot(p)})).filter(x=>x.t.total<=VP.budget);
  if(!ok.length)return"No package fits "+fmt2(VP.budget)+". Raise the budget or shorten the trip.";
- const cheap=ok.reduce((a,b)=>a.t.total<=b.t.total?a:b),fast=ok.reduce((a,b)=>a.p.flight.ret.dur<=b.p.flight.ret.dur?a:b);
- let t=ok.length+" of "+d.packs.length+" packages fit "+fmt2(VP.budget)+".\n";
+ const cheap=ok.reduce((a,b)=>a.t.total<=b.t.total?a:b);let t=ok.length+" of "+d.packs.length+" packages fit "+fmt2(VP.budget)+".\n";
+ if(d.est){ok.forEach(x=>{t+=x.p.name+": "+fmt2(x.t.total)+", "+fmt2(VP.budget-x.t.total)+" left.\n"});return t+"Lowest cost: "+cheap.p.name+". Every price here is an estimate from regional assumptions, not a quote."}
+ const fast=ok.reduce((a,b)=>a.p.flight.ret.dur<=b.p.flight.ret.dur?a:b);
  ok.forEach(x=>{t+=x.p.name+": "+fmt2(x.t.total)+", "+fmt2(VP.budget-x.t.total)+" left. Return flight "+fmtDur(Math.round(x.p.flight.ret.dur/60))+(x.p.flight.ret.stops?" via "+x.p.flight.ret.via:"")+". "+x.p.stay.name+": "+x.p.stay.score+".\n"});
  return t+"Lowest cost: "+cheap.p.name+". Shortest return flight: "+fast.p.name+". Food is an estimate."}
 function vpPaintAct(){const el=$("#vpact");if(!el)return;const d=vpData(),p=d.packs[VP.pick];
@@ -664,31 +702,40 @@ function vpPaintAct(){const el=$("#vpact");if(!el)return;const d=vpData(),p=d.pa
  const t=vpTot(p),days=vpWork(d.start,d.awayTo,VP.week);
  el.innerHTML=`<div class="card" style="margin-top:14px"><h3>${p.name} package · ${fmt2(t.total)}</h3>
  <div class="stat"><span>Away</span><b>${d.start} to ${d.awayTo}</b></div><div class="stat"><span>Vacation days to record</span><b>${days} working days (${VP.week==="mf"?"Mon-Fri":"Sun-Thu"})</b></div><div class="stat"><span>Paid with</span><b>Your own card. The company card is not used.</b></div>
- <div class="vp-note" style="margin:12px 0">Booking is a mock call to a future booking API. Kiwi, Booking.com and Tripadvisor only search today, so the real links open on their sites.</div>
+ <div class="vp-note" style="margin:12px 0">${d.est?"These are estimates, so there is nothing real to book yet. The mock booking below shows what happens after a real booking: ":""}Booking is a mock call to a future booking API. Kiwi, Booking.com and Tripadvisor only search today, so real links open on their sites.</div>
  <button class="btn sun" data-vp="book" ${VP.booked?"disabled":""}>${VP.booked?"Booked":"Confirm and book (mock)"}</button></div>`}
-async function vpRun(){if(VP.running)return;const d=vpData(),out=$("#vpout");if(!out)return;VP.running=true;VP.pick=-1;VP.booked=false;$("#vprun").disabled=true;axReset();
+function vpSteps(d){const live=d.live,est=d.est,how=live?"Replayed from the 5 Nov snapshot, not a live call.":est?"Not searched: no data source for this trip. Using your estimate assumptions.":"Mock results (fictional).";
+ return[["Request","Destination, dates and budget only. No personal data goes to the search tools."],["Rules","Budget split, vacation-day count and the over-budget check."],["Flights","Kiwi, "+vpCode(d.from)+" to "+d.code+". "+how],["Stays","Booking.com and Tripadvisor, "+d.nights+" night"+(d.nights>1?"s":"")+", 1 guest. "+how],["Things to do","Booking.com attractions. "+how],["Fit to budget","Packages above "+fmt(VP.budget)+" are removed. Rules do this, not the model."],["Explain","The model writes the comparison from the numbers above."]]}
+async function vpRun(){if(VP.running||vpValid())return;const d=vpData(),out=$("#vpout");if(!out)return;VP.running=true;VP.pick=-1;VP.booked=false;$("#vprun").disabled=true;axReset();
  out.innerHTML=`<div class="vp-steps" id="vpsteps"></div><div id="vpexp"></div><div id="vppacks"></div><div id="vpact"></div><div id="vppost"></div>`;
- const S=[["Request","Destination, dates and budget only. No personal data goes to the search tools."],["Rules","Budget split, vacation-day count and the over-budget check."],["Flights","Kiwi: round trips "+d.from+" to "+d.to+", cheapest first."],["Stays","Booking.com and Tripadvisor: "+d.nights+" nights, 1 guest."],["Things to do","Booking.com attractions for the dates."],["Fit to budget","Packages above "+fmt(VP.budget)+" are removed. Rules do this, not the model."],["Explain","The model writes the comparison from the numbers above."]];
- for(let i=0;i<S.length;i++){const st=$("#vpsteps");if(!st){VP.running=false;return}const e=document.createElement("div");e.className="vp-step vp-run";e.innerHTML=`<i>${i+1}</i><span><b>${S[i][0]}</b> <span class="muted small">${S[i][1]}</span></span>`;st.appendChild(e);vpAx(i);await sleep(520);e.classList.remove("vp-run");e.classList.add("vp-ok");e.firstChild.textContent="✓"}
+ const S=vpSteps(d);
+ for(let i=0;i<S.length;i++){const st=$("#vpsteps");if(!st){VP.running=false;return}const e=document.createElement("div");e.className="vp-step vp-run";e.innerHTML=`<i>${i+1}</i><span><b>${S[i][0]}</b> <span class="muted small">${vpEsc(S[i][1])}</span></span>`;st.appendChild(e);vpAx(i);await sleep(520);e.classList.remove("vp-run");e.classList.add("vp-ok");e.firstChild.textContent="✓"}
  if(!$("#vppacks")){VP.running=false;return}
  vpPaintPacks(true);$("#vpexp").innerHTML=`<div class="llm" id="vpllm" style="margin-bottom:14px"></div>`;
  await typeInto($("#vpllm"),vpExplain());vpPaintAct();VP.running=false;const b=$("#vprun");if(b){b.disabled=false;b.textContent="Plan again"}}
 async function vpBook(){if(VP.booked||VP.pick<0)return;VP.booked=true;vpPaintAct();celebrate();
  const d=vpData(),p=d.packs[VP.pick],t=vpTot(p),days=vpWork(d.start,d.awayTo,VP.week),el=$("#vppost");if(!el)return;
- el.innerHTML=`<div class="card" style="margin-top:14px"><div class="row"><span class="stamp pass" style="font-size:18px">Booked (mock)</span><b>${d.to} · ${fmt2(t.total)}</b></div><div class="log" id="vplog" style="margin-top:10px"></div></div><div id="vpcal"></div>`;
+ el.innerHTML=`<div class="card" style="margin-top:14px"><div class="row"><span class="stamp pass" style="font-size:18px">Booked (mock)</span><b>${vpEsc(d.to)} · ${fmt2(t.total)}</b></div><div class="log" id="vplog" style="margin-top:10px"></div></div><div id="vpcal"></div>`;
  const L=["booking API (mock): flight reserved","booking API (mock): stay reserved","booking API (mock): activities reserved","payment: employee's own card, company card not used","calendar event created (mock)","vacation ledger entry recorded (mock)","manager notified, no approval needed"];
  for(const [li,l] of L.entries()){await sleep(300);vpAxBook(li);const lg=$("#vplog");if(!lg)return;lg.insertAdjacentHTML("beforeend",`<div>${stamp()} ${l}</div>`)}
  const dates=[];for(let x=new Date(d.start+"T00:00:00"),e=new Date(d.awayTo+"T00:00:00");x<=e;x.setDate(x.getDate()+1))dates.push(new Date(x));
  const wk=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],isW=k=>VP.week==="mf"?(k>=1&&k<=5):(k>=0&&k<=4),before=18;
- $("#vpcal").innerHTML=`<div class="grid2" style="margin-top:14px"><div class="card"><div class="eyebrow">Employee calendar (mock)</div><h3 style="margin:4px 0">${d.to} vacation · private</h3><div class="vp-cal">${dates.map((x,i)=>`<div class="vp-day vp-away ${isW(x.getDay())?"vp-leave":""}" style="--i:${i}">${wk[x.getDay()]}<b>${x.getDate()}</b>${isW(x.getDay())?"leave":"off"}</div>`).join("")}</div><p class="small muted" style="margin-top:8px">Orange underline marks a counted working day.</p></div>
+ $("#vpcal").innerHTML=`<div class="grid2" style="margin-top:14px"><div class="card"><div class="eyebrow">Employee calendar (mock)</div><h3 style="margin:4px 0">${vpEsc(d.to)} vacation · private</h3><div class="vp-cal">${dates.map((x,i)=>`<div class="vp-day vp-away ${isW(x.getDay())?"vp-leave":""}" style="--i:${i}">${wk[x.getDay()]}<b>${x.getDate()}</b>${isW(x.getDay())?"leave":"off"}</div>`).join("")}</div><p class="small muted" style="margin-top:8px">Orange underline marks a counted working day.</p></div>
  <div class="card"><div class="eyebrow">Vacation ledger (mock)</div><table class="tbl"><tbody><tr><td>Employee</td><td><b>E-104</b></td></tr><tr><td>Type</td><td>Annual leave</td></tr><tr><td>Dates</td><td>${d.start} to ${d.awayTo}</td></tr><tr><td>Days recorded</td><td><b>${days}</b></td></tr><tr><td>Balance</td><td>${before} to <b>${before-days}</b> <span class="vp-src vp-est">assumption</span></td></tr><tr><td>Status</td><td><span class="tag pass">Recorded (mock)</span></td></tr></tbody></table></div></div>
  <div class="vp-msg" style="margin-top:14px"><span class="av" style="background:#3A1F4D;animation:none">M</span><span><b>To the manager</b><br>Employee E-104 booked private leave from ${d.start} to ${d.awayTo}, ${days} working days. Nothing to approve.</span></div>`}
 document.addEventListener("click",ev=>{const b=ev.target.closest("[data-vp]");if(!b)return;const a=b.dataset.vp,v=b.dataset.v;
- if(a==="src"){VP.src=v;VP.budget=VPD[v].budget;vpReset()}
+ if(a==="preset"){if(v==="live"||v==="mock"){const d=VPD[v];VP.from=d.from;VP.to=d.to;VP.start=d.start;VP.end=d.end;VP.budget=d.budget}else{VP.from="Tel Aviv";VP.to="Madrid";VP.start=vpPlus(30);VP.end=vpPlus(35);VP.budget=1500;VP.region="europe";VP.est=Object.assign({},VPREG.europe)}vpFormChanged()}
  else if(a==="week"){VP.week=v;vpPaintForm();vpPaintAct()}
  else if(a==="run")vpRun();
  else if(a==="pick"){const i=+b.dataset.i;if(VP.booked||vpTot(vpData().packs[i]).total>VP.budget)return;VP.pick=i;$$(".vp-pkg").forEach((e,k)=>e.classList.toggle("vp-sel",k===i));vpPaintAct()}
  else if(a==="book")vpBook()});
+document.addEventListener("change",ev=>{const t=ev.target;if(!t.dataset||!t.dataset.vp)return;const k=t.dataset.vp;
+ if(k==="from")VP.from=t.value;else if(k==="to")VP.to=t.value;
+ else if(k==="start"){VP.start=t.value;if(VP.end<=VP.start){const d=new Date(VP.start+"T00:00:00");d.setDate(d.getDate()+5);VP.end=vpISO(d)}}
+ else if(k==="end")VP.end=t.value;
+ else if(k==="region"){VP.region=t.value;VP.est=Object.assign({},VPREG[t.value])}
+ else if(k==="est")VP.est[t.dataset.k]=Math.max(0,+t.value||0);
+ else return;vpFormChanged()});
 document.addEventListener("input",ev=>{const b=ev.target;if(!b.dataset||b.dataset.vp!=="budget")return;VP.budget=+b.value;$("#vpbv").textContent=fmt(VP.budget);
  if($("#vppacks")&&$("#vppacks").children.length&&!VP.booked){if(VP.pick>=0&&vpTot(vpData().packs[VP.pick]).total>VP.budget)VP.pick=-1;vpPaintPacks(false);vpPaintAct()}});
 
@@ -713,7 +760,7 @@ function axHTML(kind,stat){const g=AXN[kind],nm={};g.nodes.forEach(n=>nm[n[0]]=n
  const nodes=g.nodes.map(n=>{const [id,x,y,t,s,k,tag]=n,c=AXC[k],pc=tag==="MOCK"?"#B97A00":tag==="MCP"?"#0B8579":"#2D8FCB";
   return`<g class="ax-n ${tag==="MOCK"?"ax-mock":""}" data-n="${id}" transform="translate(${x-54},${y-26})"><rect class="ax-r" width="108" height="52" rx="12"/><circle cx="22" cy="26" r="13" fill="${c[1]}"/><svg x="14" y="18" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${c[0]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${AXI[k]}</svg><text class="ax-t" x="40" y="24">${t}</text><text class="ax-s" x="40" y="37">${s}</text>${tag?`<rect x="68" y="-7" width="38" height="14" rx="7" fill="${pc}"/><text class="ax-pill" x="87" y="3" text-anchor="middle">${tag}</text>`:""}</g>`}).join("");
  const lg=[["mcp","MCP call"],["api","API call"],["rules","Rules"],["llm","Model"],["human","Human"]].map(x=>`<span>${axIcon(x[0],14,AXC[x[0]][0])}${x[1]}</span>`).join("")+(kind==="vac"?`<span><svg width="22" height="10"><rect x="1" y="1" width="20" height="8" rx="3" fill="none" stroke="#b9c8da" stroke-width="2" stroke-dasharray="4 3"/></svg>Mock</span>`:"");
- return`<div class="ax-head"><b>Architecture</b><span class="tag sys">${g.title}</span></div><svg class="ax-svg" viewBox="0 0 400 ${g.h}" role="img" aria-label="${g.title} architecture">${edges}${nodes}</svg><div class="ax-legend">${lg}</div>`+(stat?"":`<div class="ax-calls" id="axcalls"><div class="muted small">Calls appear here as the flow runs.</div></div>`)}
+ return`<div class="ax-head"><b>Architecture</b><span class="tag sys">${g.title}</span></div><svg class="ax-svg" viewBox="0 0 400 ${g.h}" role="img" aria-label="${g.title} architecture">${edges}${nodes}</svg><div class="ax-legend">${lg}</div>${kind==="vac"?`<div class="small muted" style="margin:-2px 0 8px">MCP boxes show the design. On this page they are replayed from a snapshot or replaced by estimates, never called.</div>`:""}`+(stat?"":`<div class="ax-calls" id="axcalls"><div class="muted small">Calls appear here as the flow runs.</div></div>`)}
 function axPaint(kind){const p=$("#axpanel");if(!p)return;p.classList.add("ax-idle");p.innerHTML=axHTML(kind)}
 function axReset(){const p=$("#axpanel");if(!p)return;p.classList.add("ax-idle");$$("#axpanel .ax-hot,#axpanel .ax-seen").forEach(e=>e.classList.remove("ax-hot","ax-seen"));const c=$("#axcalls");if(c)c.innerHTML=`<div class="muted small">Calls appear here as the flow runs.</div>`}
 function axTouch(ids,calls){const p=$("#axpanel");if(!p)return;p.classList.remove("ax-idle");$$("#axpanel .ax-hot").forEach(e=>e.classList.remove("ax-hot"));
@@ -721,7 +768,7 @@ function axTouch(ids,calls){const p=$("#axpanel");if(!p)return;p.classList.remov
  $$("#axpanel [data-e]").forEach(e=>{const q=e.dataset.e.split("|");if(ids.includes(q[0])&&ids.includes(q[1]))e.classList.add("ax-hot","ax-seen")});
  const c=$("#axcalls");if(c&&calls&&calls.length){if(!c.querySelector(".ax-call"))c.innerHTML="";calls.forEach(x=>c.insertAdjacentHTML("beforeend",`<div class="ax-call"><span class="ax-ic ax-ic-${x[0]}">${axIcon(AXK[x[0]],13)}</span><b>${x[0]}</b><span>${x[1]} · ${x[2]}</span></div>`));c.scrollTop=c.scrollHeight}}
 const AX={on:true};
-function vpAx(i){const d=vpData(),sfx=d.live?" (captured)":" (simulated)",R="TLV to "+d.code;
+function vpAx(i){const d=vpData(),sfx=d.live?" (replayed snapshot, not a live call)":d.est?" (not called: estimate)":" (simulated)",R=vpCode(d.from)+" to "+d.code;if(d.est&&i>=2&&i<=4){axTouch(["A","R"],[["RULES","Estimate model","no search tool called: regional assumptions"]]);return}
  const T=[[["U","A"],[]],[["A","R"],[["RULES","Budget and days","split budget, count working days"]]],[["A","K"],[["MCP","Kiwi","search-flight "+R+sfx]]],[["A","B","P"],[["MCP","Booking.com","accommodations_search"+sfx],["MCP","Tripadvisor","search_hotels, ratings"+sfx]]],[["A","B"],[["MCP","Booking.com","attractions_search"+sfx]]],[["A","R"],[["RULES","Budget check","remove packages over budget"]]],[["A","M"],[["MODEL","LLM","write the comparison from the numbers"]]]];
  axTouch(T[i][0],T[i][1])}
 function vpAxBook(li){const T={0:[["A","X"],[["API","Booking API","reserve flight, stay, activities (mock)"]]],4:[["A","C"],[["MCP","Google Calendar","create_event (mock)"]]],5:[["A","G"],[["API","Vacation ledger","record days (mock)"]]],6:[["A","N"],[["API","Manager notice","notify only (mock)"]]]};if(T[li])axTouch(T[li][0],T[li][1])}
